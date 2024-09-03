@@ -1,0 +1,445 @@
+%AERSP 313 Project 2 
+
+clear
+clc
+close
+
+%% 1
+
+%1.1
+B = load('images.mat').image_data'; % Loading Image data
+B = mat2gray(B); % Converting to grayscale
+for i=1:10 % For loop indexing from 1 to 10
+    subplot(1,10,i) % Plotting
+    t = append('\fontsize{7}Image ',int2str(i)); %Adds a title to each image generated in the loop
+firstimage=reshape(B(:,i), [37,50])'; %Reshapes the image to the correct array size
+imshow(firstimage); %Displays the images in a figure
+title(t); %Titles for pictures
+end
+
+%1.2
+A=B*B';%Creates matrix A that is a symmetric matrix
+[Eigvec,Eigval]=eig(A); %Calculates the eigenvalues and eigenvectors of A
+Eigvec=flip(Eigvec,2); %Flips the eigenvector array to be in correct order
+
+EigvalCol=zeros(1,1850); %Zeros array for the column vector of eigenvalues
+for k=1:1850 %For loop indexing from 1 to 1850
+    EigvalCol(1,k)=Eigval(k,k); %Pulls out each eigenvalue and puts them into a column vector
+end    
+
+EigvalCol=flip(EigvalCol); %Flips the eigenvalue column vector to be in correct order
+figure(2) %Figure for Eigenvalue graph
+x=1:1850; %X value for pulling out all eigenvalues for graph
+loglog(x,EigvalCol); %Log-Log graph of all eigenvalues
+
+%1.3
+figure(3) %Figure for largest ten eigenvectors
+for j=1:10 %For loop indexing from 1 to 10
+vec=Eigvec(:,j); %Pulls out an eigenvector
+m=mat2gray(vec); %Mat2gray's the eigenvector for proper display
+v=reshape(m,[37,50])'; %Reshapes eigenvector for correct array size
+subplot(1,10,j) %Plotting
+imshow(v); %Displays the images in a figure
+end
+
+figure(4) %Figure for smallest ten eigenvectors
+for e=1:10 %For loop indexing from 1 to 10
+vec=Eigvec(:,1839+e); %Pulls out an eigenvector
+m=mat2gray(vec); %Mat2gray's the eigenvector for proper display
+v=reshape(m,[37,50])'; %Reshapes eigenvector for correct array size
+subplot(1,10,e) %Plotting
+imshow(v);%Displays the images in a figure
+end
+
+%1.4
+
+figure(5)
+subplot(1,2,1)
+vec=A*Eigvec(:,1); %Creates a vector that is Matrix A times eigenvector
+m=mat2gray(vec); %Mat2gray's the vector for proper display
+v=reshape(m,[37,50])'; %Reshapes vector for correct array size
+imshow(v);%Displays the image in a figure for comparison 
+title('Au1')
+
+subplot(1,2,2)
+vec=EigvalCol(1,1)*Eigvec(:,1); %Creates a vector that is the eigenvalue times eigenvector
+m=mat2gray(vec); %Mat2gray's the vector for proper display
+v=reshape(m,[37,50])'; %Reshapes vector for correct array size
+imshow(v);%Displays the image in a figure for comparison
+title('Lambda1u1')
+
+
+%% 1.5
+Evector = zeros(100,1); % generating a matrix for the error plot
+Kvector = zeros(100,1); % generating a matrix for the error plot
+for p = 1:100 % for loop iterating from 1 to 10
+eps = 100; % starting the error at 100, so that the while loop condition is satisfied
+k = 0; % starting k at 0, so the counter inside the while loop starts at 1
+b = zeros(1850,1); % generating a matrix for the image approximations
+while eps > p % while loop with [p]% error tolerance for image error
+k = k + 1; % k counter
+c=lsqr(Eigvec(:,1:k),B(:,1)); % least squares method to get constants
+b(:,1)=(Eigvec(:,1:k)*c); % approximation of image talk about least squares problem, make error plot, explain algorithm of the process, and where the cutoff occurs
+eps = (norm(b-B(:,1))/norm(B(:,1)))*100; % error percentage of the approximation
+bt = reshape(b,[37,50])'; % formatting the approximation for output
+end % end of while loop
+Kvector(p) = k; % storing the k value into the Kvector matrix
+Evector(p) = p; % storing the error value into the Evector matrix
+if k == 88 % making an if statement to ensure the best low-rank approximation is graphed
+    figure(6) % new figure for the image plots
+    subplot(1,2,1) % formatting the figure
+    imshow(bt) % plotting the approximation
+    title 'Best Low Rank Approximation at k = 88' % title for the approximated images
+    subplot(1,2,2) % creating an iterated subplot function for the image, on even numbers
+    imshow(reshape(B(:,1),[37,50])') % plotting the actual image
+    title 'Actual Image' % title for the actual image
+end % ending the if statement
+end % ending the for loop
+figure(7) % new figure for the error vs. k value graph
+plot(Kvector,Evector,Kvector,9*ones(100),'-r') % plotting the k values vs. the error percentages, with a red line marking the best k value
+title('Error vs. k value') % title for the graph
+xlabel("k value") % labeling the x-axis
+ylabel("Error Percentage") % labeling the y-axis
+%% 2
+
+% 2.1
+figure(8)%Figure for 1-D plot
+u= @(x,y) (1-x^2)*(2*y^3-3*y^2+1); % Analytical solution of PDE
+fplot(@(x) u(x,0.5),[0,1]); % Creates a 1-D plot of the analytical solution of the PDE
+xlabel("X-Axis")
+ylabel("Y-Axis")
+
+figure(9) % Figure for the 2-D contour plot
+fmesh(u,[0,1,0,0.5]) % Creates a 2-D contour plot 
+xlabel("X-Axis")
+ylabel("Y-Axis")
+zlabel("Z-Axis")
+
+%% 2.2
+h = 1/5;
+dimofA = (((h)^-1+1)*((h)^-1-1));
+A1 = zeros(dimofA,dimofA);
+v1 = (-4*ones(dimofA,1));
+v2 = horzcat((ones(1,(h^-1-2))),repmat(horzcat(0,(ones(1,(h^-1-2)))),1,(h^-1)));
+diag(v2,1)
+diag(v2,-1)
+v3 = (vertcat(2*ones(((h)^-1-1),1),ones((dimofA-(2*((h)^-1-1))),1)));
+v4 = flip(v3);
+diag(v3,(h^-1-1));
+diag(v4,-(h^-1-1));
+A1 = diag(v1) + diag(v2,1) + diag(v2,-1) + diag(v3,(h^-1-1)) + diag(v4,-(h^-1-1));
+
+f=@(x,y) ((-2*(((2*(y^3))-(3*(y^2))+1)))+(6*(1-(x^2))*((2*y)-1)));
+f2=@(y) ((((2*(y^3))-(3*(y^2))+1)));
+b1=zeros(((h^-1)^2)-1,1);
+k = 1;
+for j = 1:((h^-1)+1)
+    for i = 2:((h^-1))
+        if i==2
+            b1(k,1) = ((h^2)*((f(((i-1)*h),((j-1)*h))))) - (f2((j-1)*h));
+        else
+            b1(k,1) = (h^2)*(f(((i-1)*h),((j-1)*h)));
+        end
+        k = k + 1;
+    end
+end
+
+slnpoint2 = linsolve(A1,b1);
+
+upoint2 = zeros(6,4);
+for j = 1:((1/(0.2))+1)
+    for i = 1:((1/(0.2))-1)
+        upoint2(j,i) = slnpoint2(i+((j-1)*4));
+    end
+end
+
+upoint2 = transpose(upoint2);
+
+leftboundarypoint1 = zeros(1,6);
+for i = 1:6
+    leftboundarypoint1(1,i) = f2((i-1)*h);
+end
+
+upoint2 = vertcat(leftboundarypoint1,upoint2,zeros(1,6));
+
+upoint2halfwaydata = zeros(1,6);
+for i = 1:6
+    upoint2halfwaydata(1,i) = (upoint2(i,3) + upoint2(i,4))/2;
+end
+
+
+
+h = 1/10;
+dimofA = (((h)^-1+1)*((h)^-1-1));
+A2 = zeros(dimofA,dimofA);
+v1 = (-4*ones(dimofA,1));
+v2 = horzcat((ones(1,(h^-1-2))),repmat(horzcat(0,(ones(1,(h^-1-2)))),1,(h^-1)));
+diag(v2,1)
+diag(v2,-1)
+v3 = (vertcat(2*ones(((h)^-1-1),1),ones((dimofA-(2*((h)^-1-1))),1)));
+v4 = flip(v3);
+diag(v3,(h^-1-1));
+diag(v4,-(h^-1-1));
+A2 = diag(v1) + diag(v2,1) + diag(v2,-1) + diag(v3,(h^-1-1)) + diag(v4,-(h^-1-1));
+
+f=@(x,y) ((-2*(((2*(y^3))-(3*(y^2))+1)))+(6*(1-(x^2))*((2*y)-1)));
+f2=@(y) ((((2*(y^3))-(3*(y^2))+1)));
+b2=zeros(((h^-1)^2)-1,1);
+k = 1;
+for j = 1:((h^-1)+1)
+    for i = 2:((h^-1))
+        if i==2
+            b2(k,1) = ((h^2)*((f(((i-1)*h),((j-1)*h))))) - (f2((j-1)*h));
+        else
+            b2(k,1) = (h^2)*(f(((i-1)*h),((j-1)*h)));
+        end
+        k = k + 1;
+    end
+end
+
+slnpoint1 = linsolve(A2,b2);
+
+upoint1 = zeros(11,9);
+for j = 1:((1/(0.1))+1)
+    for i = 1:((1/(0.1))-1)
+        upoint1(j,i) = slnpoint1(i+((j-1)*9));
+    end
+end
+upoint1 = transpose(upoint1);
+leftboundarypoint1 = zeros(1,11);
+for i = 1:11
+    leftboundarypoint1(1,i) = f2((i-1)*h);
+end
+upoint1 = vertcat(leftboundarypoint1,upoint1,zeros(1,11));
+
+figure(10)
+subplot(1,3,1)
+  u= @(x,y) (1-x^2)*(2*y^3-3*y^2+1); % Analytical solution of PDE
+  fplot(@(x) u(x,0.5),[0,1]); % Creates a 1-D plot of the analytical solution of the PDE
+  title('Analytical Solution')
+subplot(1,3,2)
+  plot(linspace(0,1,height(upoint1)), upoint1(:,6), '+-')
+  title('1-D LinePlot with meshsize h=0.1')
+subplot(1,3,3)
+  plot(linspace(0,1,height(upoint2)),upoint2halfwaydata(1,:), '+-')
+  title('1-D LinePlot with meshsize h=0.2')
+
+figure(11)
+subplot(1,2,1)
+  plot(linspace(0,1,length(upoint1)),upoint1(:,:), 'k+-')
+  title('2-D Contour Plot with meshsize h=0.1')
+subplot(1,2,2)
+  plot(linspace(0,1,length(upoint2)),upoint2(:,:), 'k+-')
+  title('2-D Contour Plot with meshsize h=0.2')
+
+%% 2.3 Gauss-Jacobi
+
+% h = 0.2
+x1(:,1)=zeros(length(b1),1);
+
+D1=diag(A1); % Get diagonal of A
+L1=tril(A1,-1); % -1 tells to do below diagonal
+Up1=triu(A1,1); % 1 tells to do above diagonal
+
+n=1;
+m=1;
+
+while m==1
+    x1(:,n+1)=D1.^(-1).*(b1-L1*x1(:,n)-Up1*x1(:,n)); % Gauss Jacobi equation
+    conv1(n+1)=max(abs(x1(:,n+1)-x1(:,n)));% convergence values
+     if abs(conv1(n+1)-conv1(n))<=10^-3 % define conditions to stop
+         break
+     end 
+     n=n+1;
+end
+x1final = x1(:,end); % get final vector from last iteration 
+
+figure(12)
+plot(linspace(0,1,length(x1final)),x1final) % how to do x,0.5 for all
+title("Gauss Jacobi soln 1")
+
+cpoint2 = zeros(6,4);
+for j = 1:((1/(0.2))+1)
+    for i = 1:((1/(0.2))-1)
+        cpoint2(j,i) = x1final(i+((j-1)*4));
+    end
+end
+
+cpoint2 = transpose(cpoint2);
+
+h = 1/5;
+leftboundarypoint2 = zeros(1,6);
+for i = 1:6
+    leftboundarypoint2(1,i) = f2((i-1)*h);
+end
+
+cpoint2 = vertcat(leftboundarypoint2,cpoint2,zeros(1,6));
+
+cpoint2halfwaydata = zeros(1,6);
+for i = 1:6
+    cpoint2halfwaydata(1,i) = (cpoint2(i,3) + cpoint2(i,4))/2;
+end
+
+% h = 0.1  
+x2(:,1)=zeros(length(b2),1);
+
+D2=diag(A2); % Get diagonal of A
+L2=tril(A2,-1); % -1 tells to do below diagonal
+Up2=triu(A2,1); % 1 tells to do above diagonal
+
+n=1;
+m=1;
+
+while m==1
+    x2(:,n+1)=D2.^(-1).*(b2-L2*x2(:,n)-Up2*x2(:,n)); % Gauss Jacobi equation
+    conv2(n+1)=max(abs(x2(:,n+1)-x2(:,n)));% convergence values
+     if abs(conv2(n+1)-conv2(n))<=10^-3 % define conditions to stop
+         break
+     end 
+     n=n+1;
+end
+x2final = x2(:,end); % get final vector from last iteration 
+
+h = 1/10;
+
+cpoint1 = zeros(11,9);
+
+for j = 1:((1/(0.1))+1)
+    for i = 1:((1/(0.1))-1)
+        cpoint1(j,i) = x2final(i+((j-1)*9));
+    end
+end
+
+cpoint1 = transpose(cpoint1);
+leftboundarypoint1 = zeros(1,11);
+for i = 1:11
+    leftboundarypoint1(1,i) = f2((i-1)*h);
+end
+cpoint1 = vertcat(leftboundarypoint1,cpoint1,zeros(1,11));
+
+figure(13)
+subplot(1,3,1)
+  u= @(x,y) (1-x^2)*(2*y^3-3*y^2+1); % Analytical solution of PDE
+  fplot(@(x) u(x,0.5),[0,1]); % Creates a 1-D plot of the analytical solution of the PDE
+  title('Analytical Solution')
+subplot(1,3,2)
+  plot(linspace(0,1,height(cpoint1)), cpoint1(:,6), '+-')
+  title('Gauss-Jacobi with meshsize h=0.1')
+subplot(1,3,3)
+  plot(linspace(0,1,height(cpoint2)),cpoint2halfwaydata(1,:), '+-')
+  title('Gauss-Jacobi with meshsize h=0.2')
+
+
+
+
+% Gauss Seidel, 2.4
+
+%h=0.2
+X1=zeros(length(b1),1);% define solution vector for seidel
+
+
+DL1=tril(A1); % DL is the addition of main diagonal and lower trangle, done before iteration for ease of calculation
+UP1=triu(A1,1); % normal upper diagonal 
+
+n=1;
+while m==1
+    X1(:,n+1)=(DL1^-1)*(b1-UP1*X1(:,n)); % Gauss Jacobi equation
+    Conv1(n+1)=max(abs(X1(:,n+1)-X1(:,n)));% convergence values
+     if abs(Conv1(n+1)-Conv1(n))<=10^-3 % define conditions to stop
+         break
+     end 
+     n=n+1;
+end
+X1final = X1(:,end); % get x vector from final iteration
+
+
+Cpoint2 = zeros(6,4);
+for j = 1:((1/(0.2))+1)
+    for i = 1:((1/(0.2))-1)
+        Cpoint2(j,i) = X1final(i+((j-1)*4));
+    end
+end
+
+Cpoint2 = transpose(Cpoint2);
+
+h = 1/5;
+leftboundarypoint2 = zeros(1,6);
+for i = 1:6
+    leftboundarypoint2(1,i) = f2((i-1)*h);
+end
+
+Cpoint2 = vertcat(leftboundarypoint2,Cpoint2,zeros(1,6));
+
+Cpoint2halfwaydata = zeros(1,6);
+for i = 1:6
+    Cpoint2halfwaydata(1,i) = (Cpoint2(i,3) + Cpoint2(i,4))/2;
+end
+
+%h=0.1  
+
+X2=zeros(length(b2),1); % define solution vector for seidel
+
+DL2=tril(A2); % DL is the addition of main diagonal and lower trangle, done before iteration for ease of calculation
+UP2=triu(A2,1); % normal upper diagonal 
+
+n=1;
+while m==1
+    X2(:,n+1)=(DL2^-1)*(b2-UP2*X2(:,n)); % Gauss Jacobi equation
+    Conv2(n+1)=max(abs(X2(:,n+1)-X2(:,n))); % convergence values
+     if abs(Conv2(n+1)-Conv2(n))<=10^-3 % define conditions to stop
+         break
+     end 
+     n=n+1;
+end
+X2final = X2(:,end); % get x vector from final iteration
+
+Cpoint1 = zeros(11,9);
+for j = 1:((1/(0.1))+1)
+    for i = 1:((1/(0.1))-1)
+        Cpoint1(j,i) = X2final(i+((j-1)*9));
+    end
+end
+
+Cpoint1 = transpose(Cpoint1);
+
+h = 1/10;
+leftboundarypoint1 = zeros(1,11);
+for i = 1:11
+    leftboundarypoint1(1,i) = f2((i-1)*h);
+end
+
+Cpoint1 = vertcat(leftboundarypoint1,Cpoint1,zeros(1,11));
+
+figure(14)
+subplot(1,3,1)
+  u= @(x,y) (1-x^2)*(2*y^3-3*y^2+1); % Analytical solution of PDE
+  fplot(@(x) u(x,0.5),[0,1]); % Creates a 1-D plot of the analytical solution of the PDE
+  title('Analytical Solution')
+subplot(1,3,2)
+  plot(linspace(0,1,height(Cpoint1)), Cpoint1(:,6), '+-')
+  title('Gauss-Seidel with meshsize h=0.1')
+subplot(1,3,3)
+  plot(linspace(0,1,height(Cpoint2)),Cpoint2halfwaydata(1,:), '+-')
+  title('Gauss-Seidel with meshsize h=0.2')
+
+figure(15)
+plot(linspace(0,1,length(X2final)),X2final) % plot solution with Gauss seidel values
+title("Gauss Seidel soln 2")
+
+
+
+% plot convergence histories
+figure(16)
+
+plot(conv1)
+hold on
+
+plot(conv2)
+
+plot(Conv1)
+
+
+plot(Conv2)
+legend('convergence history for GJ1','convergence history for GJ2','convergence history for GS1','convergence history for GS2')
+
+hold off
