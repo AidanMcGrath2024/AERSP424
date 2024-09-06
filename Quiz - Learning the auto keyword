@@ -1,0 +1,9 @@
+#include <iostream>
+int main ()
+{
+    auto a = 1, b = 2, c = 3;
+    auto d = 4, e = 5;
+    auto f = "6";
+    auto g = a+b+c+d+e+f;
+    std::cout << g; // ???
+}
