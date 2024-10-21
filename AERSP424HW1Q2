@@ -16,11 +16,13 @@ private:
     static vector<string> destinations;
     static vector<int> miles;
 
+    //To keep track of destinations and miles vectors
     static bool initialized;
 
 public:
     // Constructor
     Plane(string from, string to) {
+        //Makes sure that the destinations and miles vectors are filled out once
         if (!initialized) {
             initialize();
             initialized = true;
@@ -92,8 +94,13 @@ public:
 
 private:
     static void initialize() {
-        destinations = {"PHL", "ORL", "EWR"};
-        miles = {160, 220, 640};
+        //Using .push_back instead of directly assigning to each element - I got errors using direct assignment
+        destinations.push_back("PHL");
+        destinations.push_back("ORL");
+        destinations.push_back("EWR");
+        miles.push_back(160);
+        miles.push_back(220);
+        miles.push_back(640);
     }
 };
 
@@ -174,6 +181,11 @@ int main() {
             pilot2 = temp;
         }
     }
+
+    delete pilot1->myPlane;
+    delete pilot2->myPlane; //Covers all my bases
+    delete pilot1;
+    delete pilot2;
 
     return 0;
 }
