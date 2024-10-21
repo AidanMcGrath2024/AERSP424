@@ -139,33 +139,35 @@ bool Plane::initialized = 0;
 int main()
 {
     //Question 5 and 7
-    Pilot pilot1("Alpha");
-    Pilot pilot2("Unknown");
-    Plane plane1("SCE","PHL");
-    plane1.setvel(450); //[450 miles per hour]
+    //Creating instances to avoid memory leaks
+    Pilot* pilot1 = new Pilot("Alpha");
+    Pilot* pilot2 = new Pilot("Unknown");
+    Plane* plane1 = new Plane("SCE","PHL");
+    plane1->setvel(450); //[450 miles per hour]
     double timestep = 15; //[seconds]
     double timemax = 9000; //[seconds]
     for(int time = 0; time < (timemax/timestep); time = time + 1){
-        plane1.operate(timestep);
-        double position = plane1.getpos();
+        plane1->operate(timestep);
+        double position = plane1->getpos();
         cout << "Time: " << timestep*(time+1) << " seconds, Position: " << position << " miles." <<  endl;
-        if (plane1.getatsce() == 1){
+        if (plane1->getatsce() == 1){
             cout << "The Plane " << &plane1 << " is at SCE." << endl;
 
             //Switching control for pilots
             static bool pilotincommand = 1;
             if (pilotincommand == 1) {
-                cout << "Pilot " << pilot2.getname() << " is now in command of plane " << &plane1 << endl;
+                cout << "Pilot " << pilot2->getname() << " is now in command of plane " << &plane1 << endl;
                 pilotincommand = 0;
             }
             else {
-                cout << "Pilot " << pilot1.getname() << " is now in command of plane " << &plane1 << endl;
+                cout << "Pilot " << pilot1->getname() << " is now in command of plane " << &plane1 << endl;
                 pilotincommand = 1;
             }
         }
     }
-
-
+    delete pilot1;
+    delete pilot2;
+    delete plane1;
 
 return 0;
 }
